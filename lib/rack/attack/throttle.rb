@@ -2,7 +2,7 @@ module Rack
   module Attack
     class Throttle
       MANDATORY_OPTIONS = [:limit, :period]
-      attr_reader :name, :limit, :period, :block
+      attr_reader :name, :period, :block
       def initialize(name, options, block)
         @name, @block = name, block
         MANDATORY_OPTIONS.each do |opt|
@@ -10,6 +10,10 @@ module Rack
         end
         @limit  = options[:limit]
         @period = options[:period].to_i
+      end
+
+      def limit_for_req(req)
+        @limit.respond_to?(:call) ? @limit.call(req) : @limit
       end
 
       def cache
@@ -22,6 +26,7 @@ module Rack
 
         key = "#{name}:#{discriminator}"
         count = cache.count(key, period)
+        limit = limit_for_req(req)
         data = {
           :count => count,
           :period => period,

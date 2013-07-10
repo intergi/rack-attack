@@ -3,7 +3,7 @@ describe 'Rack::Attack.throttle' do
   before do
     @period = 60 # Use a long period; failures due to cache key rotation less likely
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
-    Rack::Attack.throttle('ip/sec', :limit => 1, :period => @period) { |req| req.ip }
+    Rack::Attack.throttle('ip/sec', :limit => Proc.new{|req| 1}, :period => @period) { |req| req.ip }
   end
 
   it('should have a throttle'){ Rack::Attack.throttles.key?('ip/sec') }
